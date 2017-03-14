@@ -1,0 +1,28 @@
+{
+  "name": "node-idman",
+  "version": "1.0.0",
+  "description": "Identity Management for Git Repositories",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/turbopope/node-idman.git"
+  },
+  "keywords": [
+    "git",
+    "msr",
+    "identity",
+    "identity",
+    "management",
+    "identities",
+    "repositories"
+  ],
+  "author": "Marco Brack",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/turbopope/node-idman/issues"
+  },
+  "homepage": "https://github.com/turbopope/node-idman#readme"
+}
