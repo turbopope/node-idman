@@ -19,7 +19,11 @@
     "identities",
     "repositories"
   ],
-  "author": "Marco Brack",
+  "author": "turbopope <PapstDonB@Googlemail.com>",
+  "contributors": [
+    "hartenfels",
+    "mmonschau"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/turbopope/node-idman/issues"
