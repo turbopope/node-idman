@@ -1,19 +1,20 @@
 # idman
 
-Usage: `./idman GIT_REPO_FOLDER [ALGORITHM ARGS...]`.
+Usage:
 
-Will perform the given identity merge `ALGORITHM` (optionally with additional
-`ARGS`) on the given `GIT_REPO_FOLDER` and output the author and committer of
-every commit in that repository according to the merged identities. If no
-`ALGORITHM` is given, the default one is used.
+```JavaScript
+const idman = require('node-idman');
+const repoStats = idman('/path/to/repo/');
+```
+
+Will perform the default identity merge for a repo. An alternative merge algorithm may be specified with the optional second argument. For non-default algorithm, ptionally additional arguments may be provided as vararg. Returns the author and committer of every commit in that repository according to the merged identities, and the identities themselfes.
 
 
 ## Requirements
 
 * git (obviously)
-
 * perl 5.16 or higher (git depends on perl, so you probably have it already)
-
+* node (obviously)
 * some [algorithms](#algorithms) may require additional things
 
 
@@ -34,77 +35,24 @@ identity is a list of `[name, e-mail address]` tuples.
 An object representing all commits in the repository, keyed by their hash. Each
 individual commit contains the following keys:
 
-##### `author`
+* `author`
+* `committer`: These values are integers referring to indexes in the `identities` array, or null if no such association exists. Use these to tell who authored, committed or signed this particular commit.
+* `author_name`
+* `author_mail`
+* `committer_name`
+* `committer_mail`: These are the raw names and e-mails from git. Don't use these for identification, they are raw and the identities aren't merged! Use `author` and `committer` instead.
+* `repo`: The path to the repository's local folder. If you want to run further git commands on it, you might need to append `/.git` to it.
+* `hash`: The commit's sha-1 hash.
+* `author_date`: The date that the commit was authored as a Unix timestamp. Note that this is a string of digits, not an integer.
+* `committer_date`: The date that the commit was committed.
+*  `subject`: The commit message subject line.
+* `body`: The rest of the commit message.
+* `notes`: The notes attached to the commit. Basically a message in addition to the regular commit message.
+* `signer`: The name or e-mail or whatever else the person who signed the commit put here.
+* `signer_key`: The signature key of who signed the commit.
+* `touched_files`, `insertions`, `deletions`: The amount of modified files, inserted lines and deleted lines in the commit, respectively. Renamed files are taken into account properly, so a rename on its own counts as a single changed file with zero inserted or deleted lines.
 
-##### `committer`
-
-These values are integers referring to indexes in the `identities` array, or
-null if no such association exists. Use these to tell who authored, committed
-or signed this particular commit.
-
-##### `author_name`
-
-##### `author_mail`
-
-##### `committer_name`
-
-##### `committer_mail`
-
-These are the raw names and e-mails from git. Don't use these for
-identification, they are raw and the identities aren't merged! Use `author` and
-`committer` instead.
-
-##### `repo`
-
-The path to the repository's local folder. If you want to run further git
-commands on it, you might need to append `/.git` to it.
-
-##### `hash`
-
-The commit's sha-1 hash.
-
-##### `author_date`
-
-The date that the commit was authored as a Unix timestamp. Note that this is a
-string of digits, not an integer.
-
-##### `committer_date`
-
-The date that the commit was committed.
-
-##### `subject`
-
-The commit message subject line.
-
-##### `body`
-
-The rest of the commit message.
-
-##### `notes`
-
-The notes attached to the commit. Basically a message in addition to the
-regular commit message.
-
-##### `signer`
-
-The name or e-mail or whatever else the person who signed the commit put here.
-
-##### `signer_key`
-
-The signature key of who signed the commit.
-
-##### `touched_files`
-
-##### `insertions`
-
-##### `deletions`
-
-The amount of modified files, inserted lines and deleted lines in the commit,
-respectively. Renamed files are taken into account properly, so a rename on
-its own counts as a single changed file with zero inserted or deleted lines.
-
-See the `--find-renames` and `--find-copies` options in `git log --help` for
-details.
+See the `--find-renames` and `--find-copies` options in `git log --help` for details.
 
 
 ## Structure
