@@ -1,6 +1,6 @@
 {
   "name": "node-idman",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Identity Management for Git Repositories",
   "main": "index.js",
   "scripts": {
