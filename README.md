@@ -1,13 +1,16 @@
 # idman
 
-Usage:
+> Map inconsistent git developer metadata to real identities
 
 ```JavaScript
 const idman = require('node-idman');
-const repoStats = idman('/path/to/repo/');
+repoStats = idman('/path/to/repo/');
+// => see sample-output.json
 ```
 
-Will perform the default identity merge for a repo. An alternative merge algorithm may be specified with the optional second argument. For non-default algorithm, ptionally additional arguments may be provided as vararg. Returns the author and committer of every commit in that repository according to the merged identities, and the identities themselfes.
+The above perform the default identity merge for a repo. An alternative merge algorithm may be specified with the optional second argument. For non-default algorithm, ptionally additional arguments may be provided as vararg. Returns the author and committer of every commit in that repository according to the merged identities, and the identities themselves ([example output](sample-output.json)).
+
+This is actually just a fork of the original idman with some wrapper code added and some some unimportant files removed. When the original idman changes, this repo should still be compatible and able to pull the changes (except for this readme maybe).
 
 
 ## Requirements
@@ -20,32 +23,25 @@ Will perform the default identity merge for a repo. An alternative merge algorit
 
 ## Output
 
-See [sample-output.json](sample-output.json) for an example. It's the output
-for this here repository.
+See [sample-output.json](sample-output.json) for an example. It's the output for this here repository.
 
 The idman output will be a JSON object. It contains the following keys:
 
-#### `identities`
+### identities
 
-An array of identities, each representing an individual contributor. Each
-identity is a list of `[name, e-mail address]` tuples.
+An array of identities, each representing an individual contributor. Each identity is a list of `[name, e-mail address]` tuples.
 
-#### `commits`
+### commits
 
-An object representing all commits in the repository, keyed by their hash. Each
-individual commit contains the following keys:
+An object representing all commits in the repository, keyed by their hash. Each individual commit contains the following keys:
 
-* `author`
-* `committer`: These values are integers referring to indexes in the `identities` array, or null if no such association exists. Use these to tell who authored, committed or signed this particular commit.
-* `author_name`
-* `author_mail`
-* `committer_name`
-* `committer_mail`: These are the raw names and e-mails from git. Don't use these for identification, they are raw and the identities aren't merged! Use `author` and `committer` instead.
+* `author`, `committer`: These values are integers referring to indexes in the `identities` array, or null if no such association exists. Use these to tell who authored, committed or signed this particular commit.
+* `author_name`, `author_mail`, `committer_name`, `committer_mail`: These are the raw names and e-mails from git. Don't use these for identification, they are raw and the identities aren't merged! Use `author` and `committer` instead.
 * `repo`: The path to the repository's local folder. If you want to run further git commands on it, you might need to append `/.git` to it.
 * `hash`: The commit's sha-1 hash.
 * `author_date`: The date that the commit was authored as a Unix timestamp. Note that this is a string of digits, not an integer.
 * `committer_date`: The date that the commit was committed.
-*  `subject`: The commit message subject line.
+* `subject`: The commit message subject line.
 * `body`: The rest of the commit message.
 * `notes`: The notes attached to the commit. Basically a message in addition to the regular commit message.
 * `signer`: The name or e-mail or whatever else the person who signed the commit put here.
@@ -57,58 +53,38 @@ See the `--find-renames` and `--find-copies` options in `git log --help` for det
 
 ## Structure
 
-[idman](idman) is the controller that executes all the pieces in [lib](lib) and
-pipes them together properly.
+[idman](idman) is the controller that executes all the pieces in [lib](lib) and pipes them together properly.
 
-[parseman](lib/parseman) gathers all commit information from git and spews out
-a JSON object for each of them on stdout.
+[parseman](lib/parseman) gathers all commit information from git and spews out a JSON object for each of them on stdout.
 
-[graphman](lib/graphman) does the identity merging from the commit information
-it receives from [parseman](lib/parseman). It can pick from various [identity
-merging algorithms](lib/Graph/Man/Algorithm).
+[graphman](lib/graphman) does the identity merging from the commit information it receives from [parseman](lib/parseman). It can pick from various [identity merging algorithms](lib/Graph/Man/Algorithm).
 
-[assocman](lib/assocman) receives the results from [graphman](lib/graphman) and
-the raw commit information from [parseman](lib/parseman) and associates the
-two, producing the final output. If the algorithm is bad and results in
-ambiguous associations, assocman will die.
+[assocman](lib/assocman) receives the results from [graphman](lib/graphman) and the raw commit information from [parseman](lib/parseman) and associates the two, producing the final output. If the algorithm is bad and results in ambiguous associations, assocman will die.
 
-Most of that code has embedded documentation at the bottom of the respective
-files. You can see it nicely formatted by running `perldoc FILE`.
+Most of that code has embedded documentation at the bottom of the respective files. You can see it nicely formatted by running `perldoc FILE`.
 
 
 ## Algorithms
 
-### [occurrence](lib/Graph/Man/Algorithm/Occurrence.pm)
-
-Merges identities if they contain identical artifacts (names or e-mail
-addresses).
-
 ### [default](lib/Graph/Man/Algorithm/Default.pm)
 
-Like occurrence, but ignores case and strips off `.(none)` at the end of e-mail
-addresses, which git seems to randomly attach and remove if the e-mail doesn't
-contain a dot.
+Like occurrence, but ignores case and strips off `.(none)` at the end of e-mail addresses, which git seems to randomly attach and remove if the e-mail doesn't contain a dot.
 
 As the name implies, this is the default algorithm.
 
+### [occurrence](lib/Graph/Man/Algorithm/Occurrence.pm)
+
+Merges identities if they contain identical artifacts (names or e-mail addresses).
+
 ### [similarity](lib/Graph/Man/Algorithm/Similarity.pm)
 
-Like occurrence, but merges identity if their normalized Levenshtein distance
-is less than a predefined threshold. You *must* specify a threshold, where `0 <
-threshold <= 1`. You can either do this by passing `--threshold NUMBER` as a
-command-line argument or by defining the `GRAPHMAN_THRESHOLD` environment
-variable.
+Like occurrence, but merges identity if their normalized Levenshtein distance is less than a predefined threshold. You *must* specify a threshold, where `0 < threshold <= 1`. You can either do this by passing `--threshold NUMBER` as a command-line argument or by defining the `GRAPHMAN_THRESHOLD` environment variable.
 
-This algorithm requires the `Text::Levenshtein::XS` Perl module. Install it via
-`sudo cpan Text::Levenshtein::XS`.
+This algorithm requires the `Text::Levenshtein::XS` Perl module. Install it via `sudo cpan Text::Levenshtein::XS`.
 
 ### [bird](lib/Graph/Man/Algorithm/Bird.pm)
 
-An extension of the similarity algorithm above, the same requirements apply.
-Implements the algorithm used by [Bird et al. in the paper “Mining Email social
-networks”](http://macbeth.cs.ucdavis.edu/msr06.pdf). This does a whole bunch
-of pre-processing on the identities and pays attention to the difference
-between usernames and real first and last names.
+An extension of the similarity algorithm above, the same requirements apply. Implements the algorithm used by [Bird et al. in the paper “Mining Email social networks”](http://macbeth.cs.ucdavis.edu/msr06.pdf). This does a whole bunch of pre-processing on the identities and pays attention to the difference between usernames and real first and last names.
 
 
 ## Papers
